@@ -1,0 +1,4 @@
+﻿<Metrics resourceId="/subscriptions/subscription().subscriptionId/resourceGroups/resourceGroup().name/providers/Microsoft.Compute/virtualMachines/vmName">
+    <MetricAggregation scheduledTransferPeriod="PT1H"/>
+    <MetricAggregation scheduledTransferPeriod="PT1M"/>
+</Metrics>
