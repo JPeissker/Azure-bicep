@@ -3,9 +3,9 @@ param vmSize string = 'Standard_A1'
 param osVersion string = '2016-Datacenter'
 param subnetID string
 param applicationName string
-param managementResourceGroup string   // Second IP segment for template VNET (VNet will be at least /20)
-param orderCycleID string        // VM Size of the domain controller
-param parentOrderCycleID string            // name of management resource group
+param managementResourceGroup string
+param orderCycleID string
+param parentOrderCycleID string
 param costCenter string
 param customerNameShort string = ''
 param _artifactsLocation string = ''
@@ -166,17 +166,4 @@ resource vmDiskEncryption 'Microsoft.Compute/virtualMachines/extensions@2020-06-
       VolumeType: 'All'
     }
   }
-}
-
-
-
-resource KeyVault 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
-    name: concat(keyVaultName,'/',orderCycleID,'-',VMName)
-    dependsOn: [
-        vm
-    ]
-    properties: {
-        contentType: concat('vm/',VMName)
-        value: '{"username" : "${adminUsername}", "password" : "${adminPassword}"}'
-    }
 }
