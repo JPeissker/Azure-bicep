@@ -1,22 +1,45 @@
 ﻿param location string = resourceGroup().location
-param vmName string = 'myVirtualMachine'
+param actionType string {
+  allowed: [
+    'StartVm'
+    'StopVm'
+  ]
+  metadata: {
+    description: 'Not Implemented yet! -- defines if workflow srts or stops a virtuel machine'
+  }
+}
+param vmName string = 'myVirtualMachineName'
 param clientId string {
   secure: true
 }
 param clientSecret string {
   secure: true
 }
+param runHours array = [
+  '12'
+]
+param runMinutes array = [
+  0
+]
+param runWeekDays array = [
+  'Monday'
+  'Tuesday'
+  'Wednesday'
+  'Thursday'
+  'Friday'
+]
+param timeZone string = 'W. Europe Standard Time'
 
-var ConnectionName = 'azurevm'
+var ConnectionType = 'azurevm'
 
 resource Connection 'Microsoft.Web/connections@2016-06-01' = {
-  name: ConnectionName
+  name: ConnectionType
   location: location
   kind: 'V1'
   properties: {
     displayName: '${vmName}-Connection'
     api: {
-      id: '${subscription().id}/providers/Microsoft.Web/locations/${location}/managedApis/${ConnectionName}'
+      id: '${subscription().id}/providers/Microsoft.Web/locations/${location}/managedApis/${ConnectionType}'
     }
     parameterValues: {
       'token:clientId': clientId
@@ -27,7 +50,7 @@ resource Connection 'Microsoft.Web/connections@2016-06-01' = {
   }
 }
 
-// Stop VM
+// Stop VM if actionType = 'StopVm'
 resource StopVm 'Microsoft.Logic/workflows@2017-07-01' = {
   name: '${vmName}-stop'
   location: location
@@ -45,17 +68,14 @@ resource StopVm 'Microsoft.Logic/workflows@2017-07-01' = {
       triggers: {
         Recurrence: {
           recurrence: {
-            frequency: 'Day'
+            frequency: 'Week'
             interval: 1
             schedule: {
-              hours: [
-                '19'
-              ]
-              minutes: [
-                0
-              ]
+              hours: runHours
+              minutes: runMinutes
+              weekDays: runWeekDays
             }
-            timeZone: 'W. Europe Standard Time'
+            timeZone: timeZone
           }
           type: 'Recurrence'
         }
@@ -85,7 +105,7 @@ resource StopVm 'Microsoft.Logic/workflows@2017-07-01' = {
         value: {
           azurevm: {
             connectionId: Connection.id
-            connectionName: ConnectionName
+            connectionName: Connection.name
             id: '${subscription().id}/providers/Microsoft.Web/locations/${location}/managedApis/azurevm'
           }
         }
@@ -94,7 +114,7 @@ resource StopVm 'Microsoft.Logic/workflows@2017-07-01' = {
   }
 }
 
-// Start Vm
+// Start actionType = 'StartVm'
 resource StartVm 'Microsoft.Logic/workflows@2017-07-01' = {
   name: '${vmName}-start'
   location: location
@@ -115,21 +135,11 @@ resource StartVm 'Microsoft.Logic/workflows@2017-07-01' = {
             frequency: 'Week'
             interval: 1
             schedule: {
-              hours: [
-                '18'
-              ]
-              minutes: [
-                0
-              ]
-              weekDays: [
-                'Monday'
-                'Tuesday'
-                'Wednesday'
-                'Thursday'
-                'Friday'
-              ]
+              hours: runHours
+              minutes: runMinutes
+              weekDays: runWeekDays
             }
-            timeZone: 'W. Europe Standard Time'
+            timeZone: timeZone
           }
           type: 'Recurrence'
         }
@@ -159,7 +169,7 @@ resource StartVm 'Microsoft.Logic/workflows@2017-07-01' = {
         value: {
           azurevm: {
             connectionId: Connection.id
-            connectionName: ConnectionName
+            connectionName: Connection.name
             id: '${subscription().id}/providers/Microsoft.Web/locations/${location}/managedApis/azurevm'
           }
         }
